@@ -1,4 +1,10 @@
 class Response:
+    """
+    The choices presented to players
+
+    _display_text = What will be shown in the terminal
+    _destination_node = What Node should the code jump to if chosen
+    """
     def __init__(self, _display_text, _destination_node):
         self.display_text = _display_text
         self.destination_node = _destination_node
@@ -8,6 +14,12 @@ class Response:
 
 
 class Node:
+    """
+    The base class for Nodes
+
+    _print_message = The message to be displayed in the terminal
+    _response_list = Response objects available for this Node
+    """
     def __init__(self, _print_message, _response_list):
         self.print_message = _print_message
         self.response_list = _response_list
@@ -20,6 +32,12 @@ class Node:
 
 
 class StoryNode(Node):
+    """
+    Node that will display a single message then prompt the user to press enter to continue
+
+    _print_message = Message displayed in terminal
+    _destination_node = Subsequent Node
+    """
     def __init__(self, _print_message, _destination_node):
         Node.__init__(self, _print_message, None)
         self.destination_node = _destination_node
@@ -33,6 +51,12 @@ class StoryNode(Node):
 
 
 class ChoiceNode(Node):
+    """
+    Node that will present that user with a choice
+
+    _print_message = Message displayed in terminal
+    _response_list = List of Responses that the player can select from
+    """
     def __init__(self, _print_message, _response_list):
         Node.__init__(self, _print_message, _response_list)
 
@@ -48,6 +72,13 @@ class ChoiceNode(Node):
 
 
 class DataNode(Node):
+    """
+    Node that will take and store a variable from the player
+
+    _print_message = The message displayed in the terminal
+    _variable_name = What the variable name will be stored as in the Player object
+    _destination_node = What Node to go to after this one
+    """
     def __init__(self, _print_message, _variable_name, _destination_node):
         Node.__init__(self, _print_message, None)
         self.variable_name = _variable_name
@@ -105,6 +136,7 @@ weeks = [
 ]
 
 
+# list of all Nodes
 nodes = [
     # 0
     StoryNode("ERROR NODE!!", 1),
