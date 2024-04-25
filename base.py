@@ -125,12 +125,11 @@ class DataNode(Node):
             if _user_input != "":
                 return True
             print("Invalid input; Please enter a value.")
-            return False
         elif self.method == VerifyMethod.INTEGER:
             if _user_input.isnumeric():
                 return True
             print("Invalid input; Please enter an integer.")
-            return False
+        return False
 
 
 class Player:
@@ -205,7 +204,7 @@ nodes = [
     # 6
     ChoiceNode("You walk up to the desk and greet the Professor. She turns to you, asking, \"How are you doing?\"",
                [
-                   Response("Horrible", 0),
+                   Response("Horrible", 10),
                    Response("Lost", 0),
                    Response("Great", 0)
                ]),
@@ -220,7 +219,37 @@ nodes = [
                [
                    Response("Go see the teacher", 6)
                ]
-               )
+               ),
+    # 10
+    ChoiceNode("\"Is there anything I can do to help?\" she asks.",
+               [
+                   Response("Yes", 12),
+                   Response("No", 11)
+               ]),
+    # 11
+    StoryNode("\"I need to make sure you are understanding the topics we are covering in class.\"",
+              0),
+    # 12
+    StoryNode("She calls the police and you are swiftly arrested.", 13),
+    # 13
+    DeathNode("You die in prison.", new_player),
+    # 14
+    ChoiceNode("\"You're... lost? Do you need to leave?\"",
+               [
+                   Response("Yes", 19),
+                   Response("No", 10),
+                   Response("Do you hear that?", 15),
+               ]),
+    # 15
+    StoryNode("You are abducted by aliens.", 16),
+    # 16
+    StoryNode("They look exactly as they are depicted in popular media from your childhood. You giggle at them", 17),
+    # 17
+    StoryNode("They murmur in response and your vision goes black.", 18),
+    # 18
+    DeathNode("You never wake up.", new_player),
+    # 19
+    StoryNode("You leave the classroom.", 7)
 ]
 
 current_node = 1
