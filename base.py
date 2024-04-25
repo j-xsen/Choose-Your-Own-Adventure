@@ -1,6 +1,17 @@
 import enum
 
 
+class Player:
+    name = ""
+    week = ""
+
+    def __init__(self):
+        self.alive = True
+
+
+new_player = Player()
+
+
 class Response:
     """
     The choices presented to players
@@ -71,7 +82,9 @@ class ChoiceNode(Node):
             counter += 1
 
     def reply(self, _user_input):
-        return self.response_list[int(_user_input)].destination_node
+        if _user_input.isnumeric() and len(self.response_list) > int(_user_input):
+            return self.response_list[int(_user_input)].destination_node
+        return False
 
 
 class DeathNode(Node):
@@ -81,21 +94,40 @@ class DeathNode(Node):
     _print_message = Message to display in terminal
     _player = Player object to kill
     """
-    def __init__(self, _print_message, _player):
+    def __init__(self, _print_message):
         Node.__init__(self, _print_message, None)
-        self.player = _player
 
     def display(self):
         Node.display(self)
         print("[press enter to end]")
 
     def reply(self, _user_input=None):
-        self.player.alive = False
+        new_player.alive = False
+
+
+class TestNode(Node):
+    """
+    Node that checks if the answer is correct
+
+    _print_message = Message to display in terminal
+    _expected = Expected response
+    """
+    def __init__(self, _print_message, _expected, _success, _fail):
+        Node.__init__(self, _print_message, None)
+        self.expected = _expected
+        self.success = _success
+        self.fail = _fail
+
+    def reply(self, _user_input):
+        if _user_input == weeks[int(getattr(new_player, self.expected))-1]:
+            return self.success
+        return self.fail
 
 
 class VerifyMethod(enum.Enum):
     NONEMPTY = 0,
-    INTEGER = 1
+    INTEGER = 1,
+    VALID_WEEK = 2,
 
 
 class DataNode(Node):
@@ -129,18 +161,11 @@ class DataNode(Node):
             if _user_input.isnumeric():
                 return True
             print("Invalid input; Please enter an integer.")
+        elif self.method == VerifyMethod.VALID_WEEK:
+            if _user_input.isnumeric() and 1 <= int(_user_input) <= 14:
+                return True
+            print("Invalid input; Please enter a number 1 - 14.")
         return False
-
-
-class Player:
-    name = ""
-    week = ""
-
-    def __init__(self):
-        self.alive = True
-
-
-new_player = Player()
 
 
 class VariableString:
@@ -150,7 +175,6 @@ class VariableString:
     _string = string to store, with a % placed where you want the variable placed
     _variable_name = Name of the variable within the Player object to be put into the text
     """
-
     def __init__(self, _string, _variable_name):
         self.string = _string
         self.variable_name = _variable_name
@@ -182,7 +206,7 @@ weeks = [
 # list of all Nodes
 nodes = [
     # 0
-    DeathNode("ERROR NODE!!", new_player),
+    DeathNode("ERROR NODE!!"),
     # 1
     StoryNode("You are in heaven", 2),
     # 2
@@ -190,7 +214,7 @@ nodes = [
              VerifyMethod.NONEMPTY),
     # 3
     DataNode("What week of class is it?", 'week', 4,
-             VerifyMethod.INTEGER),
+             VerifyMethod.VALID_WEEK),
     # 4
     StoryNode("You wake up at the end of class.", 5),
     # 5
@@ -202,17 +226,18 @@ nodes = [
                    Response("Talk to classmate", 9)
                ]),
     # 6
-    ChoiceNode("You walk up to the desk and greet the Professor. She turns to you, asking, \"How are you doing?\"",
+    ChoiceNode("You walk up to the desk and greet the Professor. She turns to you, asking,"
+               " \"How are you doing?\"",
                [
                    Response("Horrible", 10),
-                   Response("Lost", 0),
-                   Response("Great", 0)
+                   Response("Lost", 14),
+                   Response("Great", 20)
                ]),
     # 7
     StoryNode("You explore the halls endlessly, becoming lost in the labyrinth of corridors.",
               8),
     # 8
-    DeathNode("You fail all your classes and die.", new_player),
+    DeathNode("You fail all your classes and die."),
     # 9
     ChoiceNode(VariableString("You look to your right and see a classmate staring at you.\n" +
                               "\"Saw you asleep the whole class. Today we learned about %.\"", "week"),
@@ -228,11 +253,11 @@ nodes = [
                ]),
     # 11
     StoryNode("\"I need to make sure you are understanding the topics we are covering in class.\"",
-              0),
+              24),
     # 12
     StoryNode("She calls the police and you are swiftly arrested.", 13),
     # 13
-    DeathNode("You die in prison.", new_player),
+    DeathNode("You die in prison."),
     # 14
     ChoiceNode("\"You're... lost? Do you need to leave?\"",
                [
@@ -243,13 +268,39 @@ nodes = [
     # 15
     StoryNode("You are abducted by aliens.", 16),
     # 16
-    StoryNode("They look exactly as they are depicted in popular media from your childhood. You giggle at them", 17),
+    StoryNode("They look exactly as they are depicted in popular media from your childhood."
+              " You giggle at them.", 17),
     # 17
     StoryNode("They murmur in response and your vision goes black.", 18),
     # 18
-    DeathNode("You never wake up.", new_player),
+    DeathNode("You never wake up."),
     # 19
-    StoryNode("You leave the classroom.", 7)
+    StoryNode("You leave the classroom.", 7),
+    # 20
+    ChoiceNode("She looks confused. \"I could not help but notice you were asleep the whole class.\"",
+               [
+                   Response("Say nothing", 11),
+                   Response("I stayed up late playing video games", 21)
+               ]),
+    # 21
+    StoryNode("The Professor looks at you, confused.", 22),
+    # 22
+    StoryNode("You see a shift in her eyebrows only seen in people seething with rage.", 23),
+    # 23
+    StoryNode("In a calm, but tense, voice she states,"
+              " \"I think it's best if you leave my classroom now.\"", 19),
+    # 24
+    TestNode("\"What did we talk about today?\" she asks.", 'week', 26, 25),
+    # 25
+    StoryNode("She rolls her eyes.", 28),
+    # 26
+    StoryNode("Before the words even escape your mouth,"
+              " your Professor has jumped to her feet with a shriek of positivity.", 27),
+    # 27
+    DeathNode("You are raptured."),
+    # 28
+    StoryNode("\"You are... Obviously not paying attention. Please see yourself out.\"", 19)
+
 ]
 
 current_node = 1
