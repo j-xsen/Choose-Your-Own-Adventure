@@ -1,3 +1,6 @@
+import enum
+
+
 class Response:
     """
     The choices presented to players
@@ -71,6 +74,30 @@ class ChoiceNode(Node):
         return self.response_list[int(_user_input)].destination_node
 
 
+class DeathNode(Node):
+    """
+    Node that ends game
+
+    _print_message = Message to display in terminal
+    _player = Player object to kill
+    """
+    def __init__(self, _print_message, _player):
+        Node.__init__(self, _print_message, None)
+        self.player = _player
+
+    def display(self):
+        Node.display(self)
+        print("[press enter to end]")
+
+    def reply(self, _user_input=None):
+        self.player.alive = False
+
+
+class VerifyMethod(enum.Enum):
+    NONEMPTY = 0,
+    INTEGER = 1
+
+
 class DataNode(Node):
     """
     Node that will take and store a variable from the player
@@ -78,15 +105,32 @@ class DataNode(Node):
     _print_message = The message displayed in the terminal
     _variable_name = What the variable name will be stored as in the Player object
     _destination_node = What Node to go to after this one
+    _method = VerifyMethod to use when verifying an input
     """
-    def __init__(self, _print_message, _variable_name, _destination_node):
+    def __init__(self, _print_message, _variable_name, _destination_node, _method):
         Node.__init__(self, _print_message, None)
         self.variable_name = _variable_name
         self.destination_node = _destination_node
+        self.method = _method
 
     def reply(self, _user_input):
-        setattr(new_player, self.variable_name, _user_input)
+        if self.verify_input(_user_input):
+            setattr(new_player, self.variable_name, _user_input)
+        else:
+            return False
         return self.destination_node
+
+    def verify_input(self, _user_input):
+        if self.method == VerifyMethod.NONEMPTY:
+            if _user_input != "":
+                return True
+            print("Invalid input; Please enter a value.")
+            return False
+        elif self.method == VerifyMethod.INTEGER:
+            if _user_input.isnumeric():
+                return True
+            print("Invalid input; Please enter an integer.")
+            return False
 
 
 class Player:
@@ -139,13 +183,15 @@ weeks = [
 # list of all Nodes
 nodes = [
     # 0
-    StoryNode("ERROR NODE!!", 1),
+    DeathNode("ERROR NODE!!", new_player),
     # 1
     StoryNode("You are in heaven", 2),
     # 2
-    DataNode("What is your name?", 'name', 3),
+    DataNode("What is your name?", 'name', 3,
+             VerifyMethod.NONEMPTY),
     # 3
-    DataNode("What week of class is it?", 'week', 4),
+    DataNode("What week of class is it?", 'week', 4,
+             VerifyMethod.INTEGER),
     # 4
     StoryNode("You wake up at the end of class.", 5),
     # 5
@@ -167,7 +213,7 @@ nodes = [
     StoryNode("You explore the halls endlessly, becoming lost in the labyrinth of corridors.",
               8),
     # 8
-    StoryNode("You fail all your classes and die.", 1),
+    DeathNode("You fail all your classes and die.", new_player),
     # 9
     ChoiceNode(VariableString("You look to your right and see a classmate staring at you.\n" +
                               "\"Saw you asleep the whole class. Today we learned about %.\"", "week"),
@@ -185,4 +231,7 @@ while new_player.alive:
 
     user_response = input()
 
-    current_node = current_node_object.reply(user_response)
+    next_node = current_node_object.reply(user_response)
+    if next_node is not False:
+        current_node = current_node_object.reply(user_response)
+exit(1)
