@@ -1,4 +1,5 @@
 import enum
+import the_hunger_games
 
 
 class Player:
@@ -83,7 +84,11 @@ class ChoiceNode(Node):
 
     def reply(self, _user_input):
         if _user_input.isnumeric() and len(self.response_list) > int(_user_input):
-            return self.response_list[int(_user_input)].destination_node
+            dest = self.response_list[int(_user_input)].destination_node
+            if dest == -1:
+                the_hunger_games.run()
+                exit(1)
+            return dest
         return False
 
 
@@ -299,11 +304,15 @@ nodes = [
     # 27
     DeathNode("You are raptured."),
     # 28
-    StoryNode("\"You are... Obviously not paying attention. Please see yourself out.\"", 19)
-
+    StoryNode("\"You are... Obviously not paying attention. Please see yourself out.\"", 19),
+    # 29
+    ChoiceNode("Choose your narrative:", [
+        Response("The Hunger Games", -1),
+        Response("Classroom", 1)
+    ]),
 ]
 
-current_node = 1
+current_node = 29
 
 while new_player.alive:
     current_node_object = nodes[current_node]

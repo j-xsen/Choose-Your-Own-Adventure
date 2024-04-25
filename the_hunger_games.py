@@ -64,7 +64,7 @@ def print_stats(health, sanity, intel, strength, agility):
     print(f"Agility: {aList[4]}")
 
 
-if __name__ == "__main__":
+def run():
     #Exposition, getting user information for character customization
     userName = input("You're in a raffle! Enter your name: ")
     userAge = int(input("Enter your age: "))
